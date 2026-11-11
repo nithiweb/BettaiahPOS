@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'database.dart';
+import 'v2_module.dart';
 
 void main() { WidgetsFlutterBinding.ensureInitialized(); runApp(const BettaiahApp()); }
 String money(int cents) => '₹${(cents/100).toStringAsFixed(2)}';
@@ -223,5 +224,3 @@ const Text('Business settings',style:TextStyle(fontSize:21,fontWeight:FontWeight
   Future<void> backup() async {try {final dir=await getTemporaryDirectory();final file=await PosDb.instance.writeBackup(dir.path);await SharePlus.instance.share(ShareParams(files:[XFile(file.path)],text:'Bettaiah POS offline backup — keep this file safe'));}catch(e){error(e);}}
   Future<void> restore() async {try {final picked=await FilePicker.platform.pickFiles(type:FileType.custom,allowedExtensions:['json']);if(picked==null||picked.files.single.path==null)return;if(!mounted)return;final confirm=await showDialog<bool>(context:context,builder:(ctx)=>AlertDialog(title:const Text('Replace all local data?'),content:const Text('Restore will erase current products and sales and replace them with the selected backup. This cannot be undone.'),actions:[TextButton(onPressed:()=>Navigator.pop(ctx,false),child:const Text('Cancel')),FilledButton(onPressed:()=>Navigator.pop(ctx,true),child:const Text('Restore'))]));if(confirm!=true)return;final raw=await File(picked.files.single.path!).readAsString();await PosDb.instance.importJson(raw);if(!mounted)return;setState(()=>cart.clear());await refresh();if(mounted)ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('Backup restored successfully')));}catch(e){error(e);}}
 }
-
-import 'v2_module.dart';
